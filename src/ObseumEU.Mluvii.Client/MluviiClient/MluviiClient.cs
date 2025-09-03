@@ -17,7 +17,7 @@ namespace ObseumEU.Mluvii.Client
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNameCaseInsensitive = true,
-            Converters = {new SafeStringEnumConverter()}
+            Converters = { new SafeStringEnumConverter() }
         };
 
         public MluviiClient(
@@ -51,7 +51,7 @@ namespace ObseumEU.Mluvii.Client
         {
             await SetAuthorizationHeaderAsync();
             var response = await _httpClient.PostAsJsonAsync($"api/{Version}/Campaigns/{campaignId}/identities",
-                new {ids = contactIds}, _jsonSerializerOptions);
+                new { ids = contactIds }, _jsonSerializerOptions);
             return response;
         }
 
@@ -149,6 +149,47 @@ namespace ObseumEU.Mluvii.Client
             var content = await response.Content.ReadAsStringAsync();
             var session = JsonSerializer.Deserialize<SessionModel>(content, _jsonSerializerOptions);
             return (session, response);
+        }
+
+        public async Task<HttpResponseMessage> CreateEmailThread(EmailThreadCreateRequest request)
+        {
+            await SetAuthorizationHeaderAsync();
+
+            var url = $"api/{Version}/EmailThreads";
+            var response = await _httpClient.PostAsJsonAsync(url, request, _jsonSerializerOptions);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"Failed to create email thread. Status code {response.StatusCode}");
+            }
+
+            return response;
+        }
+
+        public async Task<(List<int> value, HttpResponseMessage response)> CreateContact(Dictionary<string, List<string>> contact, int? departmentId = null)
+        {
+            return await CreateContacts(new List<Dictionary<string, List<string>>>() { contact }, departmentId);
+        }
+
+        public async Task<(List<int> value, HttpResponseMessage response)> CreateContacts(IEnumerable<Dictionary<string, List<string>>> contacts, int? departmentId = null)
+        {
+            await SetAuthorizationHeaderAsync();
+
+            var url = $"api/{Version}/Contacts";
+            if (departmentId.HasValue)
+            {
+                url += $"?departmentId={departmentId.Value}";
+            }
+            var debug = JsonSerializer.Serialize(contacts);
+            var response = await _httpClient.PostAsJsonAsync(url, contacts, _jsonSerializerOptions);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"Failed to create contacts. Status code {response.StatusCode}");
+            }
+
+
+            var content = await response.Content.ReadAsStringAsync();
+            var contactIds = JsonSerializer.Deserialize<List<int>>(content, _jsonSerializerOptions);
+            return (contactIds, response);
         }
     }
 }
