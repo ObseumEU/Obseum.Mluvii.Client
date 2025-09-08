@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using mluvii.ApiModels.Sessions;
+using mluvii.ApiModels.Contacts;
 
 namespace ObseumEU.Mluvii.Client
 {
@@ -190,6 +191,57 @@ namespace ObseumEU.Mluvii.Client
             var content = await response.Content.ReadAsStringAsync();
             var contactIds = JsonSerializer.Deserialize<List<int>>(content, _jsonSerializerOptions);
             return (contactIds, response);
+        }
+
+        public async Task<(List<ContactModel>? value, HttpResponseMessage response)> GetContacts(
+            int? departmentId = null,
+            string? filterField = null,
+            string? filterValue = null,
+            int limit = 10,
+            int? offset = null)
+        {
+            await SetAuthorizationHeaderAsync();
+
+            var arguments = new List<string>();
+            if (departmentId.HasValue)
+                arguments.Add($"departmentId={departmentId.Value}");
+            if (!string.IsNullOrWhiteSpace(filterField))
+                arguments.Add($"filterField={Uri.EscapeDataString(filterField)}");
+            if (!string.IsNullOrWhiteSpace(filterValue))
+                arguments.Add($"filterValue={Uri.EscapeDataString(filterValue)}");
+            if (limit > 0)
+                arguments.Add($"limit={limit}");
+            if (offset.HasValue)
+                arguments.Add($"offset={offset.Value}");
+
+            var qs = arguments.Any() ? $"?{string.Join("&", arguments)}" : string.Empty;
+            var url = $"/api/{Version}/Contacts{qs}";
+
+            var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"Failed to fetch contacts with status code {response.StatusCode}");
+                return (null, response);
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var contacts = JsonSerializer.Deserialize<List<ContactModel>>(content, _jsonSerializerOptions);
+            return (contacts, response);
+        }
+
+        public async Task<long?> FindContactId(int departmentId, string filterField, string filterValue)
+        {
+            var (contacts, response) = await GetContacts(
+                departmentId: departmentId,
+                filterField: filterField,
+                filterValue: filterValue,
+                limit: 1
+            );
+
+            if (!response.IsSuccessStatusCode || contacts is null || contacts.Count == 0)
+                return null;
+
+            return contacts.FirstOrDefault().Id;
         }
     }
 }

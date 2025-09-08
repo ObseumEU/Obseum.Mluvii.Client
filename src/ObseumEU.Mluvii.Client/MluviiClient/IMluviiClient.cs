@@ -1,4 +1,5 @@
 using mluvii.ApiModels.Sessions;
+using mluvii.ApiModels.Contacts;
 
 namespace ObseumEU.Mluvii.Client
 {
@@ -11,5 +12,7 @@ namespace ObseumEU.Mluvii.Client
         Task<HttpResponseMessage> CreateEmailThread(EmailThreadCreateRequest request);
         Task<(List<int> value, HttpResponseMessage response)> CreateContacts(IEnumerable<Dictionary<string, List<string>>> contacts, int? departmentId = null);
         Task<(List<int> value, HttpResponseMessage response)> CreateContact(Dictionary<string, List<string>> contact, int? departmentId = null);
+        Task<(List<ContactModel>? value, HttpResponseMessage response)> GetContacts(int? departmentId = null, string? filterField = null, string? filterValue = null, int limit = 10, int? offset = null);
+        Task<long?> FindContactId(int departmentId, string filterField, string filterValue);
     }
 }

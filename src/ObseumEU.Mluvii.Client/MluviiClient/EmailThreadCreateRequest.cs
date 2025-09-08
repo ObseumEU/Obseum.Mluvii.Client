@@ -8,7 +8,7 @@ namespace ObseumEU.Mluvii.Client
 
         [JsonPropertyName("operatorUserId")] public int? OperatorUserId { get; set; }
 
-        [JsonPropertyName("contactId")] public int? ContactId { get; set; }
+        [JsonPropertyName("contactId")] public long? ContactId { get; set; }
 
         [JsonPropertyName("clientEmails")] public List<string> ClientEmails { get; set; } = new();
 
