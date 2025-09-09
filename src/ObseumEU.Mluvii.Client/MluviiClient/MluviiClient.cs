@@ -160,7 +160,7 @@ namespace ObseumEU.Mluvii.Client
             var response = await _httpClient.PostAsJsonAsync(url, request, _jsonSerializerOptions);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError($"Failed to create email thread. Status code {response.StatusCode}");
+                _logger.LogError($"Failed to create email thread. Status code {response.StatusCode} Error: {await response.Content.ReadAsStringAsync()}");
             }
 
             return response;
