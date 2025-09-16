@@ -14,5 +14,6 @@ namespace ObseumEU.Mluvii.Client
         Task<(List<int> value, HttpResponseMessage response)> CreateContact(Dictionary<string, List<string>> contact, int? departmentId = null);
         Task<(List<ContactModel>? value, HttpResponseMessage response)> GetContacts(int? departmentId = null, string? filterField = null, string? filterValue = null, int limit = 10, int? offset = null);
         Task<long?> FindContactId(int departmentId, string filterField, string filterValue);
+        Task<HttpResponseMessage> UpdateContact(long id, Dictionary<string, List<string>> contactData);
     }
 }

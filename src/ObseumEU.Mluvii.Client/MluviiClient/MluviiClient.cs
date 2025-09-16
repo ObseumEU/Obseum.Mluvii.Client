@@ -243,5 +243,20 @@ namespace ObseumEU.Mluvii.Client
 
             return contacts.FirstOrDefault().Id;
         }
+
+        public async Task<HttpResponseMessage> UpdateContact(long id, Dictionary<string, List<string>> contactData)
+        {
+            await SetAuthorizationHeaderAsync();
+
+            var url = $"api/{Version}/Contacts/{id}";
+            var response = await _httpClient.PutAsJsonAsync(url, contactData, _jsonSerializerOptions);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"Failed to update contact {id}. Status code {response.StatusCode} Error: {await response.Content.ReadAsStringAsync()}");
+            }
+
+            return response;
+        }
     }
 }
